@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="mappers">
+        <xs:complexType>
+            <xs:choice maxOccurs="unbounded">
+                <xs:element name="request">
+                    <xs:complexType>
+                        <xs:attributeGroup ref="request_attrs"/>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="mapper">
+                    <xs:complexType>
+                        <xs:sequence maxOccurs="unbounded">
+                            <xs:element name="property">
+                                <xs:complexType>
+                                    <xs:attributeGroup ref="property_attrs"/>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="sub">
+                                <xs:complexType>
+                                    <xs:attributeGroup ref="sub_attrs"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attributeGroup ref="mapper_attrs"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+            <xs:attributeGroup ref="mappers_attrs"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:attributeGroup name="mappers_attrs">
+        <xs:attribute name="namespace" use="required"/>
+        <xs:attribute name="itemSelector"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="request_attrs">
+        <xs:attribute name="id"/>
+        <xs:attribute name="url"/>
+        <xs:attribute name="charset"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="mapper_attrs">
+        <xs:attribute name="id" use="required"/>
+        <xs:attribute name="request"/>
+        <xs:attribute name="itemSelector"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="property_attrs">
+        <xs:attribute name="name" use="required"/>
+        <xs:attribute name="selector" use="required"/>
+        <xs:attribute name="content" use="required">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="text"/>
+                    <xs:enumeration value="html"/>
+                    <xs:enumeration value="src"/>
+                    <xs:enumeration value="abs_src"/>
+                    <xs:enumeration value="href"/>
+                    <xs:enumeration value="abs_href"/>
+                    <xs:enumeration value="value"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="pattern"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="sub_attrs">
+        <xs:attribute name="name" use="required"/>
+        <xs:attribute name="selector"/>
+        <xs:attribute name="mapper"/>
+    </xs:attributeGroup>
+</xs:schema>

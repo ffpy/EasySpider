@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<mappers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../../xsd/easycrawler_mapper.xsd"
+         namespace="org.ffpy.easyspider.core.qidian.Qidain">
+    <request id="bookInfo" url="https://book.qidian.com/info/{id}" charset="utf8"/>
+
+    <mapper id="getBookInfo" request="bookInfo">
+        <property name="name" selector=".book-info h1 em" content="text"/>
+        <property name="author" selector=".book-info .writer" content="text"/>
+        <property name="intro" selector=".book-info-detail .book-intro p" content="html"/>
+        <sub name="catalogs" mapper="getBookCatalog"/>
+        <sub name="score" mapper="getBookScore"/>
+        <sub name="fans" mapper="getFans"/>
+    </mapper>
+
+    <mapper id="getBookCatalog" request="bookInfo"
+            itemSelector=".catalog-content-wrap .volume-wrap .cf li">
+        <property name="name" selector="a" content="text"/>
+        <property name="url" selector="a" content="abs_href"/>
+    </mapper>
+
+    <mapper id="getBookScore" request="bookInfo">
+        <property name="value" selector="#j_bookScore" content="text"/>
+        <property name="count" selector="#j_userCount" content="text" pattern="(\d*)"/>
+    </mapper>
+
+    <mapper id="getFans">
+        <sub name="recommend" mapper="getRecommend"/>
+        <sub name="reward" mapper="getReward"/>
+    </mapper>
+
+    <mapper id="getRecommend" request="bookInfo">
+        <property name="week" selector="#recCount" content="text"/>
+        <property name="rank" selector="#ticket-wrap .ticket" content="text" pattern="排名(\d*)"/>
+    </mapper>
+
+    <mapper id="getReward" request="bookInfo">
+        <property name="week" selector=".rewardNum" content="text"/>
+        <property name="today" selector="#todayNum" content="text"/>
+    </mapper>
+</mappers>

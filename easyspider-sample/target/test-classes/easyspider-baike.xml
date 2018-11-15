@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mappers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../../../../xsd/easycrawler_mapper.xsd"
+         namespace="org.ffpy.easyspider.sample.baike.Baike">
+    <mapper id="item">
+        <property name="name" selector=".lemmaWgt-lemmaTitle-title h1" content="text"/>
+        <property name="intro" selector=".lemma-summary" content="text"/>
+    </mapper>
+</mappers>
