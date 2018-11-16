@@ -8,4 +8,8 @@ public interface RequestQueue {
     Request get();
 
     void add(Request request);
+
+    void remove(Request request);
+
+    int size();
 }

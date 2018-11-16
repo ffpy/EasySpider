@@ -7,4 +7,6 @@ public interface UrlSet {
     boolean contains(String url);
 
     void remove(String url);
+
+    int size();
 }

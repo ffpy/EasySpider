@@ -8,6 +8,7 @@ import org.jsoup.nodes.Document;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * 模式URL查找器

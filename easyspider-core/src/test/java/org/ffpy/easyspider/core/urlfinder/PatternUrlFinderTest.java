@@ -3,7 +3,7 @@ package org.ffpy.easyspider.core.urlfinder;
 import org.ffpy.easyspider.core.entity.Page;
 import org.ffpy.easyspider.core.entity.Request;
 import org.ffpy.easyspider.core.entity.Response;
-import org.ffpy.easyspider.core.scheduler.Scheduler;
+import org.ffpy.easyspider.core.spider.Spider;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -25,7 +25,7 @@ public class PatternUrlFinderTest {
             "</body>\n" +
             "</html>";
     private Response response = Response.Builder.of(Response.OK, html).build();
-    private Page page = new Page(mock(Scheduler.class),
+    private Page page = new Page(mock(Spider.class),
             Request.Builder.of("https://www.tset.com").build(), response);
 
     @Test

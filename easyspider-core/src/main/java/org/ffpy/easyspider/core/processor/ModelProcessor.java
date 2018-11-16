@@ -4,11 +4,13 @@ import org.ffpy.easyspider.core.entity.Page;
 import org.ffpy.easyspider.core.helper.MapperHelper;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.concurrent.atomic.LongAdder;
 
 public abstract class ModelProcessor<T> implements Processor {
     private final Class<?> namespace;
     private final String id;
     private final Class<T> type;
+
 
     public ModelProcessor(Class<?> namespace, String id) {
         this.namespace = namespace;

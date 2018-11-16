@@ -1,9 +1,9 @@
 package org.ffpy.easyspider.core.onerror;
 
-import org.ffpy.easyspider.core.entity.Page;
-import org.ffpy.easyspider.core.scheduler.Scheduler;
+import org.ffpy.easyspider.core.entity.Request;
+import org.ffpy.easyspider.core.spider.Spider;
 
 public interface OnError {
 
-    void error(Scheduler scheduler, Page page, Throwable throwable);
+    void error(Spider spider, Request request, Throwable throwable);
 }

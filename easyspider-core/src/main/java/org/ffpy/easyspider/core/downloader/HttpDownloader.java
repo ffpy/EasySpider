@@ -1,6 +1,6 @@
 package org.ffpy.easyspider.core.downloader;
 
-import com.sun.istack.internal.Nullable;
+import org.ffpy.easyspider.core.Counter;
 import org.ffpy.easyspider.core.entity.Request;
 import org.ffpy.easyspider.core.entity.Response;
 
@@ -11,6 +11,8 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * 简单下载器
@@ -27,39 +29,38 @@ public class HttpDownloader implements Downloader {
     /** 请求的UA */
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36";
 
+    /** 线程池 */
+    private final Executor executor;
     /** 代理 */
     private final Proxy proxy;
     /** 代理验证 */
     private final byte[] proxyAuth;
+    private final Counter counter = new Counter();
 
-    public HttpDownloader() {
-        this.proxy = null;
-        this.proxyAuth = null;
-    }
-
-    public HttpDownloader(String proxyHost, int proxyPort) {
-        this(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)));
-    }
-
-    public HttpDownloader(Proxy proxy) {
-        this.proxy = Objects.requireNonNull(proxy);
-        this.proxyAuth = null;
-    }
-
-    public HttpDownloader(String proxyHost, int proxyPort, String proxyUsername,
-                          String proxyPassword) {
-        this(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)),
-                proxyUsername, proxyPassword);
-    }
-
-    public HttpDownloader(Proxy proxy, @Nullable String proxyUsername,
-                          @Nullable String proxyPassword) {
-        this.proxy = Objects.requireNonNull(proxy);
-        this.proxyAuth = (proxyUsername + ":" + proxyPassword).getBytes();
+    private HttpDownloader(Executor executor, Proxy proxy, byte[] proxyAuth) {
+        this.executor = executor;
+        this.proxy = proxy;
+        this.proxyAuth = proxyAuth;
     }
 
     @Override
     public void download(Request request, Callback callback) throws Exception {
+        executor.execute(() -> {
+            try {
+                downloadAction(request, callback);
+            } catch (Exception e) {
+                counter.incrementFailed();
+                e.printStackTrace();
+            }
+        });
+    }
+
+    @Override
+    public Counter counter() {
+        return counter;
+    }
+
+    private void downloadAction(Request request, Callback callback) throws Exception {
         // 创建连接
         URL url = new URL(request.url());
         HttpURLConnection conn = (HttpURLConnection) (proxy == null ?
@@ -87,7 +88,54 @@ public class HttpDownloader implements Downloader {
                 .of(conn.getResponseCode(), conn.getInputStream())
                 .headers(conn.getHeaderFields())
                 .build();
+        // 计数
+        counter.incrementSuccess();
         // 回调
         callback.callback(response);
+    }
+
+    public static class Builder {
+        private int threads;
+        private Proxy proxy;
+        private byte[] proxyAuth;
+
+        public static Builder of() {
+            return new Builder();
+        }
+
+        private Builder() {
+        }
+
+        public Builder threads(int n) {
+            if (n < 1)
+                throw new IllegalArgumentException("线程数不能小于1");
+            this.threads = n;
+            return this;
+        }
+
+        public Builder proxy(Proxy proxy) {
+            this.proxy = Objects.requireNonNull(proxy);
+            return this;
+        }
+
+        public Builder proxy(String host, int port) {
+            Objects.requireNonNull(host);
+            proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port)));
+            return this;
+        }
+
+        public Builder proxyAuth(String username, String password) {
+            Objects.requireNonNull(username);
+            Objects.requireNonNull(password);
+            this.proxyAuth = (username + ":" + password).getBytes();
+            return this;
+        }
+
+        public HttpDownloader build() {
+            Executor executor = threads < 1 ?
+                    Executors.newSingleThreadExecutor() :
+                    Executors.newFixedThreadPool(threads);
+            return new HttpDownloader(executor, proxy, proxyAuth);
+        }
     }
 }

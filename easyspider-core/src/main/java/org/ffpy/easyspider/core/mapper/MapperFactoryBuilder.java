@@ -12,9 +12,8 @@ public class MapperFactoryBuilder {
     }
 
     public MapperFactory build() {
-        if (downloader == null)
-            downloader = new HttpDownloader();
-
-        return new MapperFactory(downloader);
+        return new MapperFactory(downloader == null ?
+                downloader = HttpDownloader.Builder.of().build() :
+                downloader);
     }
 }

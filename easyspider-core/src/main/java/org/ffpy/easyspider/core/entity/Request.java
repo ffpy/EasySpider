@@ -4,6 +4,7 @@ import com.sun.istack.internal.Nullable;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
 /**
@@ -27,12 +28,17 @@ public final class Request {
     private final Map<String, String> cookies;
     /** 额外信息 */
     private final Object extra;
+    /** 优先级 */
+    private final int priority;
+    /** 重试次数 */
+    private LongAdder retryCount = new LongAdder();
 
     private Request(String url, Method method, int depth,
                     @Nullable Map<String, String> params,
                     @Nullable Map<String, String> headers,
                     @Nullable Map<String, String> cookies,
-                    @Nullable Object extra) {
+                    @Nullable Object extra,
+                    int priority) {
         this.url = Objects.requireNonNull(url);
         this.method = Objects.requireNonNull(method);
         this.depth = depth;
@@ -40,6 +46,7 @@ public final class Request {
         this.headers = headers;
         this.cookies = cookies;
         this.extra = extra;
+        this.priority = priority;
     }
 
     public String url() {
@@ -87,6 +94,36 @@ public final class Request {
         return (T) extra;
     }
 
+    public int prority() {
+        return priority;
+    }
+
+    public int retryCount() {
+        return retryCount.intValue();
+    }
+
+    public void incrementRetryCount() {
+        retryCount.increment();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Request request = (Request) o;
+        return depth == request.depth &&
+                Objects.equals(url, request.url) &&
+                method == request.method &&
+                Objects.equals(params, request.params) &&
+                Objects.equals(headers, request.headers) &&
+                Objects.equals(cookies, request.cookies);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, method, depth, params, headers, cookies);
+    }
+
     @Override
     public String toString() {
         return "Request{" +
@@ -97,6 +134,8 @@ public final class Request {
                 ", headers=" + headers +
                 ", cookies=" + cookies +
                 ", extra=" + extra +
+                ", priority=" + priority +
+                ", retryCount=" + retryCount +
                 '}';
     }
 
@@ -123,6 +162,7 @@ public final class Request {
         private Map<String, String> headers;
         private Map<String, String> cookies;
         private Object extra;
+        private int priority;
 
         public static Builder of(String url) {
             return new Builder(url);
@@ -135,7 +175,8 @@ public final class Request {
                     .params(request.params)
                     .headers(request.headers)
                     .cookies(request.cookies)
-                    .extra(request.extra);
+                    .extra(request.extra)
+                    .priority(request.priority);
         }
 
         private Builder(String url) {
@@ -203,13 +244,18 @@ public final class Request {
             return this;
         }
 
+        public Builder priority(int priority) {
+            this.priority = priority;
+            return this;
+        }
+
         public Request build() {
             if (cookies != null) {
                 initHeaders();
                 headers.put(COOKIE_HEADER_NAME, getCookieHeader());
             }
             return new Request(url, method, depth, params,
-                    headers, cookies, extra);
+                    headers, cookies, extra, priority);
         }
 
         private void initParams() {

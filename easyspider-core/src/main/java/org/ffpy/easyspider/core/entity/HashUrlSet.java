@@ -4,20 +4,25 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class HashUrlSet implements UrlSet {
-    private final Set<String> set = new HashSet<>();
+    private final Set<String> urlSet = new HashSet<>();
 
     @Override
     public void add(String url) {
-        set.add(url);
+        urlSet.add(url);
     }
 
     @Override
     public boolean contains(String url) {
-        return set.contains(url);
+        return urlSet.contains(url);
     }
 
     @Override
     public void remove(String url) {
-        set.remove(url);
+        urlSet.remove(url);
+    }
+
+    @Override
+    public int size() {
+        return urlSet.size();
     }
 }

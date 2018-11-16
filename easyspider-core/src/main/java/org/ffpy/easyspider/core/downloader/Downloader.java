@@ -1,12 +1,13 @@
 package org.ffpy.easyspider.core.downloader;
 
+import org.ffpy.easyspider.core.Countable;
 import org.ffpy.easyspider.core.entity.Request;
 import org.ffpy.easyspider.core.entity.Response;
 
 /**
  * 页面下载器
  */
-public interface Downloader {
+public interface Downloader extends Countable {
 
     default void download(String url, Callback callback) throws Exception {
         download(Request.Builder.of(url).build(), callback);

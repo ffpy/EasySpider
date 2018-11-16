@@ -1,7 +1,7 @@
 package org.ffpy.easyspider.core.entity;
 
 import com.sun.istack.internal.Nullable;
-import org.ffpy.easyspider.core.scheduler.Scheduler;
+import org.ffpy.easyspider.core.spider.Spider;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -11,20 +11,20 @@ import java.util.Optional;
  */
 public final class Page {
     /** 所属的调度器 */
-    private final Scheduler scheduler;
+    private final Spider spider;
     /** 请求 */
     private final Request request;
     /** 响应 */
     private final Response response;
 
-    public Page(Scheduler scheduler, Request request, @Nullable Response response) {
-        this.scheduler = Objects.requireNonNull(scheduler);
+    public Page(Spider spider, Request request, @Nullable Response response) {
+        this.spider = Objects.requireNonNull(spider);
         this.request = Objects.requireNonNull(request);
         this.response = response;
     }
 
-    public Scheduler scheduler() {
-        return scheduler;
+    public Spider scheduler() {
+        return spider;
     }
 
     public Request request() {

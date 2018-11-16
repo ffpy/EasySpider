@@ -49,8 +49,8 @@
 
     <xs:attributeGroup name="property_attrs">
         <xs:attribute name="name" use="required"/>
-        <xs:attribute name="selector" use="required"/>
-        <xs:attribute name="content" use="required">
+        <xs:attribute name="selector"/>
+        <xs:attribute name="content">
             <xs:simpleType>
                 <xs:restriction base="xs:string">
                     <xs:enumeration value="text"/>
@@ -60,6 +60,7 @@
                     <xs:enumeration value="href"/>
                     <xs:enumeration value="abs_href"/>
                     <xs:enumeration value="value"/>
+                    <xs:enumeration value="url"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>

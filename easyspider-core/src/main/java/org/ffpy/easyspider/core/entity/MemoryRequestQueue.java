@@ -15,4 +15,14 @@ public class MemoryRequestQueue implements RequestQueue {
     public void add(Request request) {
         requests.add(request);
     }
+
+    @Override
+    public void remove(Request request) {
+        requests.remove(request);
+    }
+
+    @Override
+    public int size() {
+        return requests.size();
+    }
 }
