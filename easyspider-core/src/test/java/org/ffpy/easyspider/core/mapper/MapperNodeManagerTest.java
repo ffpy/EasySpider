@@ -2,7 +2,7 @@ package org.ffpy.easyspider.core.mapper;
 
 import org.junit.Test;
 
-public class MapperManagerTest {
+public class MapperNodeManagerTest {
 
     @Test
     public void testInit() throws ClassNotFoundException {

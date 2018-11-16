@@ -1,5 +1,6 @@
 package org.ffpy.easyspider.sample.qidian;
 
+import java.util.Date;
 import java.util.List;
 
 public class BookInfo {
@@ -9,6 +10,7 @@ public class BookInfo {
     private List<BookCatalog> catalogs;
     private BookScore score;
     private Fans fans;
+    private Date testDate;
 
     public String getName() {
         return name;
@@ -68,6 +70,7 @@ public class BookInfo {
                 ", catalogs=" + catalogs +
                 ", score=" + score +
                 ", fans=" + fans +
+                ", testDate=" + testDate +
                 '}';
     }
 }

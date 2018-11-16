@@ -1,4 +1,4 @@
-package org.ffpy.easyspider.core.mapper.entity;
+package org.ffpy.easyspider.core.mapper.node;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -7,7 +7,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 子映射
  */
 @XStreamAlias("sub")
-public class Sub {
+public class SubNode {
     @XStreamAsAttribute
     private String name;
     @XStreamAsAttribute
@@ -29,7 +29,7 @@ public class Sub {
 
     @Override
     public String toString() {
-        return "Sub{" +
+        return "SubNode{" +
                 "name='" + name + '\'' +
                 ", selector='" + selector + '\'' +
                 ", mapper='" + mapper + '\'' +

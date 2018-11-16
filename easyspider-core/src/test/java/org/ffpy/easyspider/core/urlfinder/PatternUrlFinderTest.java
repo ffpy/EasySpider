@@ -1,7 +1,8 @@
 package org.ffpy.easyspider.core.urlfinder;
 
-import org.ffpy.easyspider.core.entity.Context;
-import org.ffpy.easyspider.core.entity.Task;
+import org.ffpy.easyspider.core.entity.Page;
+import org.ffpy.easyspider.core.entity.Request;
+import org.ffpy.easyspider.core.entity.Response;
 import org.ffpy.easyspider.core.scheduler.Scheduler;
 import org.junit.Test;
 
@@ -23,15 +24,15 @@ public class PatternUrlFinderTest {
             "\t<img src=\"http://www.test.com/b.png\"/>\n" +
             "</body>\n" +
             "</html>";
-    private Context context = new Context(mock(Scheduler.class), new Task("https://www.tset.com", 1));
-
+    private Response response = Response.Builder.of(Response.OK, html).build();
+    private Page page = new Page(mock(Scheduler.class),
+            Request.Builder.of("https://www.tset.com").build(), response);
 
     @Test
     public void testFind() throws Exception {
         PatternUrlFinder finder = new PatternUrlFinder();
-        context.setHtml(html);
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        finder.find(context, urls -> {
+        finder.find(page, urls -> {
             String[] expected = new String[]{
                     "https://www.tset.com/a.html", "http://www.test.com/b.html",
                     "https://www.tset.com/a.png", "http://www.test.com/b.png"};
@@ -44,9 +45,8 @@ public class PatternUrlFinderTest {
     @Test
     public void testFind2() throws Exception {
         PatternUrlFinder finder = new PatternUrlFinder(".*\\.png");
-        context.setHtml(html);
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        finder.find(context, urls -> {
+        finder.find(page, urls -> {
             String[] expected = new String[]{
                     "https://www.tset.com/a.png", "http://www.test.com/b.png"};
             assertArrayEquals(expected, urls.toArray());

@@ -1,4 +1,4 @@
-package org.ffpy.easyspider.core.mapper.entity;
+package org.ffpy.easyspider.core.mapper.node;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -7,7 +7,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 请求
  */
 @XStreamAlias("request")
-public class Request {
+public class RequestNode {
     @XStreamAsAttribute
     private String id;
     @XStreamAsAttribute
@@ -41,7 +41,7 @@ public class Request {
 
     @Override
     public String toString() {
-        return "Request{" +
+        return "RequestNode{" +
                 "id='" + id + '\'' +
                 ", url='" + url + '\'' +
                 ", charset='" + charset + '\'' +

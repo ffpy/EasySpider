@@ -1,4 +1,4 @@
-package org.ffpy.easyspider.core.util;
+package org.ffpy.easyspider.core.helper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

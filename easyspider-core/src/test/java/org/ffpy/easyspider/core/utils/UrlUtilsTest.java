@@ -1,4 +1,4 @@
-package org.ffpy.easyspider.core.util;
+package org.ffpy.easyspider.core.utils;
 
 import org.junit.Test;
 
@@ -8,13 +8,13 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class UrlUtilTest {
+public class UrlUtilsTest {
 
     @Test
     public void testGetBaseUri() throws MalformedURLException {
-        assertEquals("http://www.baidu.com", UrlUtil.getBaseUri("http://www.baidu.com/a.html"));
-        assertEquals("https://www.baidu.com", UrlUtil.getBaseUri("https://www.baidu.com/a.html"));
-        assertEquals("https://www.baidu.com", UrlUtil.getBaseUri("https://www.baidu.com"));
+        assertEquals("http://www.baidu.com", UrlUtils.getBaseUri("http://www.baidu.com/a.html"));
+        assertEquals("https://www.baidu.com", UrlUtils.getBaseUri("https://www.baidu.com/a.html"));
+        assertEquals("https://www.baidu.com", UrlUtils.getBaseUri("https://www.baidu.com"));
 
     }
 
@@ -24,6 +24,6 @@ public class UrlUtilTest {
         params.put("id", 1);
         params.put("name", "jack");
         assertEquals("www.a.com/jack/1",
-                UrlUtil.parseUrl("www.a.com/{name}/{id}", params));
+                UrlUtils.parseUrl("www.a.com/{name}/{id}", params));
     }
 }

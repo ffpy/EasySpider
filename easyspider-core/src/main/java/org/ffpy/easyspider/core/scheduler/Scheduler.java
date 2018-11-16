@@ -2,16 +2,13 @@ package org.ffpy.easyspider.core.scheduler;
 
 import com.sun.istack.internal.Nullable;
 import org.ffpy.easyspider.core.downloader.Downloader;
-import org.ffpy.easyspider.core.entity.Context;
-import org.ffpy.easyspider.core.entity.Task;
-import org.ffpy.easyspider.core.entity.Worker;
+import org.ffpy.easyspider.core.entity.*;
 import org.ffpy.easyspider.core.onerror.OnError;
 import org.ffpy.easyspider.core.processor.Processor;
 import org.ffpy.easyspider.core.stopper.Stopper;
 import org.ffpy.easyspider.core.urlfinder.UrlFinder;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
@@ -24,8 +21,9 @@ public class Scheduler {
     private static final int TIME_WAIT_TERMINATED = 50;
 
     /** 任务队列 */
-    private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<>();
-    private final Set<String> crawledUrlSet = new HashSet<>();
+    private final RequestQueue requestQueue = new MemoryRequestQueue();
+    /** 已爬取URL去重 */
+    private final UrlSet crawledUrlSet = new HashUrlSet();
     /** 下载器列表 */
     private final List<Worker<Downloader>> downloaderList;
     /** 处理器列表 */
@@ -70,7 +68,7 @@ public class Scheduler {
         if (isStop)
             throw new IllegalStateException("Scheduler已停止！");
         Objects.requireNonNull(url);
-        taskQueue.add(new Task(url, MIN_DEPTH));
+        requestQueue.add(Request.Builder.of(url).build());
     }
 
     /**
@@ -93,7 +91,11 @@ public class Scheduler {
             throw new IllegalStateException("Scheduler已停止！");
         Objects.requireNonNull(urls);
         for (String url : urls)
-            taskQueue.add(new Task(url, depth));
+            requestQueue.add(Request.Builder.of(url).depth(depth).build());
+    }
+
+    public void addRequest(Request request) {
+        requestQueue.add(request);
     }
 
     /**
@@ -106,10 +108,10 @@ public class Scheduler {
         isAllowStart = false;
         // 遍历任务队列
         while (!isStop) {
-            // 取任务
-            Task task = taskQueue.poll();
+            // 取请求
+            Request request = requestQueue.get();
             // 如果任务队列为空并且所有任务已结束，则结束爬取
-            if (task == null) {
+            if (request == null) {
                 if (0 == workingCount.longValue()) break;
                 try {
                     Thread.sleep(TIME_WAIT_TERMINATED);
@@ -120,36 +122,33 @@ public class Scheduler {
             }
 
             // 判断是否已爬取过
-            if (crawledUrlSet.contains(task.getUrl())) continue;
-            crawledUrlSet.add(task.getUrl());
+            if (crawledUrlSet.contains(request.url())) continue;
+            crawledUrlSet.add(request.url());
 
             // 匹配下载器
-            Downloader downloader = matchDownloader(task);
+            Downloader downloader = matchDownloader(request);
             if (downloader == null) continue;
             // 停止判断
-            if (stopper != null && stopper.isStop(this, task)) continue;
+            if (stopper != null && stopper.isStop(this, request)) continue;
             // 计数
             crawlCount++;
             workingCount.increment();
-            // 构建上下文
-            Context context = new Context(this, task);
             try {
                 // 下载页面
-                downloader.download(task.getUrl(), html -> {
-                    // 填充上下文
-                    context.setHtml(html);
+                downloader.download(request, response -> {
+                    Page page = new Page(this, request, response);
                     try {
                         // 处理页面
-                        Processor processor = matchProcess(task);
+                        Processor processor = matchProcess(request);
                         if (processor != null) {
                             processCount++;
-                            processor.process(context);
+                            processor.process(page);
                         }
                         // 关联URL
-                        UrlFinder urlFinder = matchUrlFinder(task);
+                        UrlFinder urlFinder = matchUrlFinder(request);
                         if (urlFinder != null) {
-                            urlFinder.find(context, urls -> {
-                                addUrls(urls, task.getDepth() + 1);
+                            urlFinder.find(page, urls -> {
+                                addUrls(urls, request.depth() + 1);
                                 workingCount.decrement();
                             });
                         } else {
@@ -159,19 +158,21 @@ public class Scheduler {
                         workingCount.decrement();
                         // 错误处理
                         if (onError != null)
-                            onError.error(this, context, e);
+                            onError.error(this, page, e);
                     }
                 });
             } catch (Exception e) {
                 workingCount.decrement();
                 // 错误处理
-                if (onError != null)
-                    onError.error(this, context, e);
+                if (onError != null) {
+                    Page page = new Page(this, request, null);
+                    onError.error(this, page, e);
+                }
             }
-            System.out.println("taskQueue size: " + taskQueue.size() +
-                    ", processCount: " + processCount +
-                    ", crawlCount: " + crawlCount +
-                    ", workingCount: " + workingCount);
+//            System.out.println("requestQueue size: " + requestQueue.size() +
+//                    ", processCount: " + processCount +
+//                    ", crawlCount: " + crawlCount +
+//                    ", workingCount: " + workingCount);
         }
         // 结束标志为真
         isStop = true;
@@ -223,12 +224,12 @@ public class Scheduler {
     /**
      * 匹配下载器
      *
-     * @param task 要匹配的任务
+     * @param request 要匹配的请求
      * @return 匹配的下载器，没有匹配则返回null
      */
-    private Downloader matchDownloader(Task task) {
+    private Downloader matchDownloader(Request request) {
         for (Worker<Downloader> worker : downloaderList) {
-            if (task.getUrl().matches(worker.getUrlPattern()))
+            if (request.url().matches(worker.getUrlPattern()))
                 return worker.getWorker();
         }
         return null;
@@ -237,12 +238,12 @@ public class Scheduler {
     /**
      * 匹配处理器
      *
-     * @param task 要匹配的任务
+     * @param request 要匹配的请求
      * @return 匹配的处理器，没有匹配则返回null
      */
-    private Processor matchProcess(Task task) {
+    private Processor matchProcess(Request request) {
         for (Worker<Processor> worker : processorList) {
-            if (task.getUrl().matches(worker.getUrlPattern()))
+            if (request.url().matches(worker.getUrlPattern()))
                 return worker.getWorker();
         }
         return null;
@@ -251,12 +252,12 @@ public class Scheduler {
     /**
      * 匹配URL查找器
      *
-     * @param task 要匹配的任务
+     * @param request 要匹配的请求
      * @return 匹配的URL查找器，没有匹配则返回null
      */
-    private UrlFinder matchUrlFinder(Task task) {
+    private UrlFinder matchUrlFinder(Request request) {
         for (Worker<UrlFinder> worker : urlFinderList) {
-            if (task.getUrl().matches(worker.getUrlPattern()))
+            if (request.url().matches(worker.getUrlPattern()))
                 return worker.getWorker();
         }
         return null;

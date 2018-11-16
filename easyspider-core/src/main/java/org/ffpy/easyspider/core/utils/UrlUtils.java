@@ -1,10 +1,12 @@
-package org.ffpy.easyspider.core.util;
+package org.ffpy.easyspider.core.utils;
+
+import org.ffpy.easyspider.core.helper.PatternHelper;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-public class UrlUtil {
+public class UrlUtils {
     private static final PatternHelper URL_PARAM_PATTERN = PatternHelper.of("\\{(.+?)\\}");
 
     public static String getBaseUri(String url) throws MalformedURLException {

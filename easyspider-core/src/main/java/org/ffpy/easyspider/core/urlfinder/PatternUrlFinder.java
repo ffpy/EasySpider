@@ -1,8 +1,8 @@
 package org.ffpy.easyspider.core.urlfinder;
 
-import org.ffpy.easyspider.core.entity.Context;
-import org.ffpy.easyspider.core.util.StringUtil;
-import org.ffpy.easyspider.core.util.UrlUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.ffpy.easyspider.core.entity.Page;
+import org.ffpy.easyspider.core.utils.UrlUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -27,15 +27,15 @@ public class PatternUrlFinder implements UrlFinder {
     }
 
     @Override
-    public void find(Context context, Callback callback) throws Exception {
-        Document doc = Jsoup.parse(context.getHtml(),
-                UrlUtil.getBaseUri(context.getUrl()));
+    public void find(Page page, Callback callback) throws Exception {
+        Document doc = Jsoup.parse(page.string(),
+                UrlUtils.getBaseUri(page.url()));
         List<String> urls = new LinkedList<>();
         doc.select("a, img").forEach(element -> {
             String s = element.absUrl("href");
-            if (StringUtil.isEmpty(s))
+            if (StringUtils.isEmpty(s))
                 s = element.absUrl("src");
-            if (StringUtil.isEmpty(s) || s.startsWith("javascript"))
+            if (StringUtils.isEmpty(s) || s.startsWith("javascript"))
                 return;
             if (s.matches(pattern))
                 urls.add(s);

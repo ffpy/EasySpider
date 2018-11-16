@@ -1,6 +1,6 @@
 package org.ffpy.easyspider.core.urlfinder;
 
-import org.ffpy.easyspider.core.entity.Context;
+import org.ffpy.easyspider.core.entity.Page;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public interface UrlFinder {
     /**
      * 在下载到页面后会调用此方法以获取关联URL
      */
-    void find(Context context, Callback callback) throws Exception;
+    void find(Page page, Callback callback) throws Exception;
 
     interface Callback {
         void callback(List<String> urls);

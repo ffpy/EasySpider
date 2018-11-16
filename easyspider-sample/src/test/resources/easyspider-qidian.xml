@@ -11,6 +11,7 @@
         <sub name="catalogs" mapper="getBookCatalog"/>
         <sub name="score" mapper="getBookScore"/>
         <sub name="fans" mapper="getFans"/>
+        <property name="testDate" selector="#testDate" content="text" format="yyyy-mm-dd"/>
     </mapper>
 
     <mapper id="getBookCatalog" request="bookInfo"

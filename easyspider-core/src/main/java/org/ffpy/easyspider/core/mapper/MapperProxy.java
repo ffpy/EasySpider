@@ -2,11 +2,11 @@ package org.ffpy.easyspider.core.mapper;
 
 import org.ffpy.easyspider.core.entity.Wrap;
 import org.ffpy.easyspider.core.exception.EasyCrawlerException;
-import org.ffpy.easyspider.core.mapper.entity.Mapper;
-import org.ffpy.easyspider.core.mapper.entity.Mappers;
-import org.ffpy.easyspider.core.mapper.entity.Request;
-import org.ffpy.easyspider.core.util.MapperHelper;
-import org.ffpy.easyspider.core.util.UrlUtil;
+import org.ffpy.easyspider.core.mapper.node.MapperNode;
+import org.ffpy.easyspider.core.mapper.node.MappersNode;
+import org.ffpy.easyspider.core.mapper.node.RequestNode;
+import org.ffpy.easyspider.core.helper.MapperHelper;
+import org.ffpy.easyspider.core.utils.UrlUtils;
 
 import java.lang.reflect.*;
 import java.util.HashMap;
@@ -16,36 +16,36 @@ import java.util.concurrent.CountDownLatch;
 
 public class MapperProxy<T> implements InvocationHandler {
     private final MapperFactory mapperFactory;
-    private final Mappers mappers;
+    private final MappersNode mappersNode;
 
-    public MapperProxy(MapperFactory mapperFactory, Mappers mappers) {
+    public MapperProxy(MapperFactory mapperFactory, MappersNode mappersNode) {
         this.mapperFactory = mapperFactory;
-        this.mappers = mappers;
+        this.mappersNode = mappersNode;
     }
 
     public static <T> T of(MapperFactory mapperFactory, Class<T> mapperType) {
-        Mappers mappers = MapperManager.getMappers(mapperType);
+        MappersNode mappersNode = MapperManager.getMappers(mapperType);
         Class<?>[] interfaces = new Class[]{mapperType};
         //noinspection unchecked
         return (T) Proxy.newProxyInstance(mapperType.getClassLoader(), interfaces,
-                new MapperProxy<>(mapperFactory, mappers));
+                new MapperProxy<>(mapperFactory, mappersNode));
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String mapperId = method.getName();
-        Mapper mapper = mappers.getMapper(mapperId);
-        Request request = mappers.getRequest(mapper.getRequest());
-        String url = UrlUtil.parseUrl(request.getUrl(), getParams(method, args));
+        MapperNode mapperNode = mappersNode.getMapper(mapperId);
+        RequestNode requestNode = mappersNode.getRequest(mapperNode.getRequest());
+        String url = UrlUtils.parseUrl(requestNode.getUrl(), getParams(method, args));
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
         Wrap<Object> wrap = new Wrap<>();
-        mapperFactory.getDownloader().download(url, html -> {
-            MapperHelper<?> mapperHelper = MapperHelper.of(mappers.getNamespace(),
+        mapperFactory.getDownloader().download(url, response -> {
+            MapperHelper<?> mapperHelper = MapperHelper.of(mappersNode.getNamespace(),
                     mapperId, method.getReturnType());
             if (method.getReturnType() == List.class)
                 mapperHelper.parameterizedType((ParameterizedType) method.getGenericReturnType());
-            wrap.value = mapperHelper.toObj(html, url);
+            wrap.value = mapperHelper.toObj(response.string(), url);
             countDownLatch.countDown();
         });
         countDownLatch.await();

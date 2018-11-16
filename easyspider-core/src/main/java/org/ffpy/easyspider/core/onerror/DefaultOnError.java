@@ -1,6 +1,6 @@
 package org.ffpy.easyspider.core.onerror;
 
-import org.ffpy.easyspider.core.entity.Context;
+import org.ffpy.easyspider.core.entity.Page;
 import org.ffpy.easyspider.core.scheduler.Scheduler;
 
 /**
@@ -8,8 +8,8 @@ import org.ffpy.easyspider.core.scheduler.Scheduler;
  */
 public class DefaultOnError implements OnError {
     @Override
-    public void error(Scheduler scheduler, Context context, Throwable throwable) {
-        System.err.println("爬取" + context.getUrl() + "出错：" + throwable.getMessage());
+    public void error(Scheduler scheduler, Page page, Throwable throwable) {
+        System.err.println("爬取" + page.url() + "出错：" + throwable.getMessage());
         throwable.printStackTrace();
     }
 }

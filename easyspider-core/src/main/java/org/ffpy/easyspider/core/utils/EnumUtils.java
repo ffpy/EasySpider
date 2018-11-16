@@ -1,6 +1,6 @@
-package org.ffpy.easyspider.core.util;
+package org.ffpy.easyspider.core.utils;
 
-public class EnumUtil {
+public class EnumUtils {
 
     public static  <T> T fromStr(String s, Class<T> enumType) {
         for (T e : enumType.getEnumConstants()) {

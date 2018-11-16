@@ -1,15 +1,15 @@
 package org.ffpy.easyspider.core.processor;
 
-import org.ffpy.easyspider.core.entity.Context;
+import org.ffpy.easyspider.core.entity.Page;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public abstract class DocumentProcessor implements Processor {
 
-    public abstract void process(Context context, Document doc) throws Exception;
+    public abstract void process(Page page, Document doc) throws Exception;
 
     @Override
-    public void process(Context context) throws Exception {
-        process(context, Jsoup.parse(context.getHtml()));
+    public void process(Page page) throws Exception {
+        process(page, Jsoup.parse(page.string()));
     }
 }

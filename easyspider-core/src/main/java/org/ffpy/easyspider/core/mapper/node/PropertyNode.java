@@ -1,15 +1,15 @@
-package org.ffpy.easyspider.core.mapper.entity;
+package org.ffpy.easyspider.core.mapper.node;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.ffpy.easyspider.core.mapper.ContentType;
-import org.ffpy.easyspider.core.util.EnumUtil;
+import org.ffpy.easyspider.core.utils.EnumUtils;
 
 /**
  * 属性配置
  */
 @XStreamAlias("property")
-public class Property {
+public class PropertyNode {
     @XStreamAsAttribute
     private String name;
     @XStreamAsAttribute
@@ -18,6 +18,8 @@ public class Property {
     private String content;
     @XStreamAsAttribute
     private String pattern;
+    @XStreamAsAttribute
+    private String format;
 
     public String getName() {
         return name;
@@ -32,20 +34,24 @@ public class Property {
     }
 
     public ContentType getContentType() {
-        return EnumUtil.fromStr(content, ContentType.class);
+        return EnumUtils.fromStr(content, ContentType.class);
     }
 
     public String getPattern() {
         return pattern;
     }
 
+    public String getFormat() {
+        return format;
+    }
     @Override
     public String toString() {
-        return "Property{" +
+        return "PropertyNode{" +
                 "name='" + name + '\'' +
                 ", selector='" + selector + '\'' +
                 ", content='" + content + '\'' +
                 ", pattern='" + pattern + '\'' +
+                ", format='" + format + '\'' +
                 '}';
     }
 }

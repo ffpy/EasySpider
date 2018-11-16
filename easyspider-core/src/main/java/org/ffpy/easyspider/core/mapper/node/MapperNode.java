@@ -1,4 +1,4 @@
-package org.ffpy.easyspider.core.mapper.entity;
+package org.ffpy.easyspider.core.mapper.node;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -10,7 +10,7 @@ import java.util.List;
  * 映射
  */
 @XStreamAlias("mapper")
-public class Mapper {
+public class MapperNode {
     @XStreamAsAttribute
     private String id;
     @XStreamAsAttribute
@@ -18,9 +18,9 @@ public class Mapper {
     @XStreamAsAttribute
     private String itemSelector;
     @XStreamImplicit
-    private List<Property> propertyList;
+    private List<PropertyNode> propertyNodeList;
     @XStreamImplicit
-    private List<Sub> subList;
+    private List<SubNode> subNodeList;
 
     public String getId() {
         return id;
@@ -34,22 +34,22 @@ public class Mapper {
         return itemSelector;
     }
 
-    public List<Property> getPropertyList() {
-        return propertyList;
+    public List<PropertyNode> getPropertyNodeList() {
+        return propertyNodeList;
     }
 
-    public List<Sub> getSubList() {
-        return subList;
+    public List<SubNode> getSubNodeList() {
+        return subNodeList;
     }
 
     @Override
     public String toString() {
-        return "Mapper{" +
+        return "MapperNode{" +
                 "id='" + id + '\'' +
                 ", request='" + request + '\'' +
                 ", itemSelector='" + itemSelector + '\'' +
-                ", propertyList=" + propertyList +
-                ", subList=" + subList +
+                ", propertyNodeList=" + propertyNodeList +
+                ", subNodeList=" + subNodeList +
                 '}';
     }
 }

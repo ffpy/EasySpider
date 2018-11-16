@@ -64,6 +64,7 @@
             </xs:simpleType>
         </xs:attribute>
         <xs:attribute name="pattern"/>
+        <xs:attribute name="format"/>
     </xs:attributeGroup>
 
     <xs:attributeGroup name="sub_attrs">

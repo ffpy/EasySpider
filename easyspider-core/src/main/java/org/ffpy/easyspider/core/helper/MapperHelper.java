@@ -1,13 +1,16 @@
-package org.ffpy.easyspider.core.util;
+package org.ffpy.easyspider.core.helper;
 
-import org.ffpy.easyspider.core.entity.Context;
+import org.apache.commons.lang3.StringUtils;
+import org.ffpy.easyspider.core.entity.Page;
 import org.ffpy.easyspider.core.exception.EasyCrawlerException;
 import org.ffpy.easyspider.core.mapper.ContentType;
 import org.ffpy.easyspider.core.mapper.MapperManager;
-import org.ffpy.easyspider.core.mapper.entity.Mapper;
-import org.ffpy.easyspider.core.mapper.entity.Mappers;
-import org.ffpy.easyspider.core.mapper.entity.Property;
-import org.ffpy.easyspider.core.mapper.entity.Sub;
+import org.ffpy.easyspider.core.mapper.node.MapperNode;
+import org.ffpy.easyspider.core.mapper.node.MappersNode;
+import org.ffpy.easyspider.core.mapper.node.PropertyNode;
+import org.ffpy.easyspider.core.mapper.node.SubNode;
+import org.ffpy.easyspider.core.utils.ObjectUtils;
+import org.ffpy.easyspider.core.utils.UrlUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -24,8 +27,8 @@ import java.util.List;
  * @param <T> bean类型
  */
 public final class MapperHelper<T> {
-    private final Mappers mappers;
-    private final Mapper mapper;
+    private final MappersNode mappersNode;
+    private final MapperNode mapperNode;
     /** bean类型 */
     private final Class<T> type;
     /** bean类型的泛型 */
@@ -64,8 +67,8 @@ public final class MapperHelper<T> {
      * @return MapperHelper
      */
     private MapperHelper(String namespace, String id, Class<T> type) {
-        this.mappers = MapperManager.getMappers(namespace);
-        this.mapper = mappers.getMapper(id);
+        this.mappersNode = MapperManager.getMappers(namespace);
+        this.mapperNode = mappersNode.getMapper(id);
         this.type = type;
     }
 
@@ -83,11 +86,11 @@ public final class MapperHelper<T> {
     /**
      * 创建Bean
      *
-     * @param context 上下文
+     * @param page 上下文
      * @return Bean实例
      */
-    public T toObj(Context context) {
-        return toObj(context.getHtml(), context.getUrl());
+    public T toObj(Page page) {
+        return toObj(page.string(), page.url());
     }
 
     /**
@@ -99,7 +102,7 @@ public final class MapperHelper<T> {
      */
     public T toObj(String html, String url) {
         try {
-            return toObj(Jsoup.parse(html, UrlUtil.getBaseUri(url)));
+            return toObj(Jsoup.parse(html, UrlUtils.getBaseUri(url)));
         } catch (MalformedURLException e) {
             throw new EasyCrawlerException(e);
         }
@@ -115,14 +118,14 @@ public final class MapperHelper<T> {
         try {
             if (type == List.class) {
                 final Class<?> subType = parameterizedType == null ?
-                        ObjectUtil.getGenericType(type) :
-                        ObjectUtil.getGenericType(parameterizedType);
+                        ObjectUtils.getGenericType(type) :
+                        ObjectUtils.getGenericType(parameterizedType);
                 //noinspection unchecked
-                return (T) createList(mapper, subType, element);
+                return (T) createList(mapperNode, subType, element);
             } else {
                 final T obj = type.newInstance();
-                fillProperties(obj, mapper, element);
-                fillSubs(obj, mapper, element);
+                fillProperties(obj, mapperNode, element);
+                fillSubs(obj, mapperNode, element);
                 return obj;
             }
         } catch (Exception e) {
@@ -133,31 +136,32 @@ public final class MapperHelper<T> {
     /**
      * 填充Bean的属性
      *
-     * @param obj     Bean实例
-     * @param mapper  映射
-     * @param element 页面文档
+     * @param obj        Bean实例
+     * @param mapperNode 映射
+     * @param element    页面文档
      */
-    private void fillProperties(Object obj, Mapper mapper, Element element) {
-        List<Property> propertyList = mapper.getPropertyList();
-        if (propertyList == null) return;
-        for (Property property : propertyList) {
-            try {
-                final Field field = type.getDeclaredField(property.getName());
+    private void fillProperties(Object obj, MapperNode mapperNode, Element element) {
+        List<PropertyNode> propertyNodeList = mapperNode.getPropertyNodeList();
+        if (propertyNodeList == null) return;
 
-                final Element e = element.selectFirst(property.getSelector());
+        for (PropertyNode propertyNode : propertyNodeList) {
+            try {
+                final Field field = type.getDeclaredField(propertyNode.getName());
+
+                final Element e = element.selectFirst(propertyNode.getSelector());
                 if (e == null) continue;
 
-                final ContentType contentType = property.getContentType();
+                final ContentType contentType = propertyNode.getContentType();
                 if (contentType == null)
-                    throw new EasyCrawlerException("无效的content: " + property.getContent() + "。");
+                    throw new EasyCrawlerException("无效的content: " + propertyNode.getContent() + "。");
                 // 获取值
                 String value = contentType.getValue(e);
-                if (StringUtil.isNotEmpty(value) &&
-                        StringUtil.isNotEmpty(property.getPattern()))
-                    value = PatternHelper.of(property.getPattern()).matcher(value).group(1);
+                if (StringUtils.isNotEmpty(value) &&
+                        StringUtils.isNotEmpty(propertyNode.getPattern()))
+                    value = PatternHelper.of(propertyNode.getPattern()).matcher(value).group(1);
                 // 设置值
                 field.setAccessible(true);
-                field.set(obj, ObjectUtil.convertStr(field.getType(), value));
+                field.set(obj, ObjectUtils.format(field.getType(), value, propertyNode.getFormat()));
             } catch (NoSuchFieldException ignored) {
             } catch (IllegalAccessException e) {
                 throw new EasyCrawlerException("注入属性失败！", e);
@@ -168,29 +172,29 @@ public final class MapperHelper<T> {
     /**
      * 填充Bean的子映射
      *
-     * @param obj     Bean实例
-     * @param mapper  映射
-     * @param element 页面文档
+     * @param obj        Bean实例
+     * @param mapperNode 映射
+     * @param element    页面文档
      */
-    private void fillSubs(Object obj, Mapper mapper, Element element) {
-        List<Sub> subList = mapper.getSubList();
-        if (subList == null) return;
-        for (Sub sub : subList) {
+    private void fillSubs(Object obj, MapperNode mapperNode, Element element) {
+        List<SubNode> subNodeList = mapperNode.getSubNodeList();
+        if (subNodeList == null) return;
+        for (SubNode subNode : subNodeList) {
             try {
-                final Field field = type.getDeclaredField(sub.getName());
-                final Element e = StringUtil.isEmpty(sub.getSelector()) ?
-                        element : element.selectFirst(sub.getSelector());
-                final Mapper subMapper = mappers.getMapper(sub.getMapper());
+                final Field field = type.getDeclaredField(subNode.getName());
+                final Element e = StringUtils.isEmpty(subNode.getSelector()) ?
+                        element : element.selectFirst(subNode.getSelector());
+                final MapperNode subMapperNode = mappersNode.getMapper(subNode.getMapper());
 
                 field.setAccessible(true);
                 // 列表
                 if (field.getType() == List.class) {
-                    Class<?> subType = ObjectUtil.getGenericType(field);
-                    field.set(obj, createList(subMapper, subType, e));
+                    Class<?> subType = ObjectUtils.getGenericType(field);
+                    field.set(obj, createList(subMapperNode, subType, e));
                 }
                 // 单个
                 else {
-                    Object value = of(mappers.getNamespace(), subMapper.getId(),
+                    Object value = of(mappersNode.getNamespace(), subMapperNode.getId(),
                             field.getType()).toObj(e);
                     field.set(obj, value);
                 }
@@ -204,21 +208,21 @@ public final class MapperHelper<T> {
     /**
      * 创建Bean列表
      *
-     * @param mapper  映射
-     * @param type    类型
-     * @param element 页面文档
+     * @param mapperNode 映射
+     * @param type       类型
+     * @param element    页面文档
      * @return Bean列表
      */
-    private List<Object> createList(Mapper mapper, Class<?> type, Element element) {
-        String itemSelector = mapper.getItemSelector();
-        if (StringUtil.isEmpty(itemSelector))
-            throw new EasyCrawlerException(mapper.getId() + "的itemSelector属性不能为空");
+    private List<Object> createList(MapperNode mapperNode, Class<?> type, Element element) {
+        String itemSelector = mapperNode.getItemSelector();
+        if (StringUtils.isEmpty(itemSelector))
+            throw new EasyCrawlerException(mapperNode.getId() + "的itemSelector属性不能为空");
 
         Elements elements = element.select(itemSelector);
         List<Object> list = new ArrayList<>(elements.size());
         // 添加项
         elements.forEach(itemElement -> {
-            Object value = of(mappers.getNamespace(), mapper.getId(), type)
+            Object value = of(mappersNode.getNamespace(), mapperNode.getId(), type)
                     .toObj(itemElement);
             list.add(value);
         });
