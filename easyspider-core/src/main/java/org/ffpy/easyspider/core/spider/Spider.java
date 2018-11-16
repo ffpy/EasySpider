@@ -178,6 +178,7 @@ public class Spider {
         while (request.retryCount() <= retryTimes) {
             try {
                 checkPause();
+
                 // 下载页面
                 downloader.download(request, response -> {
                     Page page = new Page(this, request, response);
@@ -269,38 +270,6 @@ public class Spider {
      */
     public int getWorkingCount() {
         return workingCount.intValue();
-    }
-
-    public int getDownloadSuccessfulCount() {
-        int count = 0;
-        for (Worker<Downloader> downloaderWorker : downloaderList) {
-            count += downloaderWorker.getWorker().counter().getSuccessfulCount();
-        }
-        return count;
-    }
-
-    public int getDownloadFailedCount() {
-        int count = 0;
-        for (Worker<Downloader> downloaderWorker : downloaderList) {
-            count += downloaderWorker.getWorker().counter().getFailedCount();
-        }
-        return count;
-    }
-
-    public int getProcessSuccessfulCount() {
-        int count = 0;
-        for (Worker<Processor> processorWorker : processorList) {
-            count += processorWorker.getWorker().counter().getSuccessfulCount();
-        }
-        return count;
-    }
-
-    public int getProcessFailedCount() {
-        int count = 0;
-        for (Worker<Processor> processorWorker : processorList) {
-            count += processorWorker.getWorker().counter().getFailedCount();
-        }
-        return count;
     }
 
     private void error(Request request, Throwable e) {

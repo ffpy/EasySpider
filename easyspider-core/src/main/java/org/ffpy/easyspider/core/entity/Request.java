@@ -2,6 +2,7 @@ package org.ffpy.easyspider.core.entity;
 
 import com.sun.istack.internal.Nullable;
 import org.apache.commons.lang3.StringUtils;
+import org.ffpy.easyspider.core.utils.UrlUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
@@ -53,6 +54,10 @@ public final class Request {
         return url;
     }
 
+    public String decodeUrl() {
+        return UrlUtils.decodeUrl(url);
+    }
+
     public Method method() {
         return method;
     }
@@ -87,6 +92,16 @@ public final class Request {
     public String cookie(String name) {
         if (cookies == null) return null;
         return cookies.get(name);
+    }
+
+    public boolean hasCookie(String name) {
+        if (cookies == null) return false;
+        return cookies.containsKey(name);
+    }
+
+    public boolean hasAnyCookie() {
+        if (cookies == null) return false;
+        return !cookies.isEmpty();
     }
 
     public <T> T extra() {
@@ -127,7 +142,7 @@ public final class Request {
     @Override
     public String toString() {
         return "Request{" +
-                "url='" + url + '\'' +
+                "url='" + decodeUrl() + '\'' +
                 ", method=" + method +
                 ", depth=" + depth +
                 ", params=" + params +

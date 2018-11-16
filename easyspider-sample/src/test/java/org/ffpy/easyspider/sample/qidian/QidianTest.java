@@ -1,5 +1,7 @@
 package org.ffpy.easyspider.sample.qidian;
 
+import org.ffpy.easyspider.core.downloader.HttpDownloader;
+import org.ffpy.easyspider.core.downloader.SeleniumDownloader;
 import org.ffpy.easyspider.core.mapper.MapperFactoryBuilder;
 import org.junit.Test;
 
@@ -10,7 +12,10 @@ public class QidianTest {
 
     public QidianTest() {
         this.qidain = new MapperFactoryBuilder()
-                .setDownloader((url, callback) -> callback.callback(TestResponse.getResponse()))
+//                .setDownloader(HttpDownloader.Builder.of().build())
+                .setDownloader(new SeleniumDownloader(
+                        SeleniumDownloader.Driver.CHROME,
+                        "D:\\Tool\\Driver\\chromedriver.exe"))
                 .build()
                 .create(Qidain.class);
     }

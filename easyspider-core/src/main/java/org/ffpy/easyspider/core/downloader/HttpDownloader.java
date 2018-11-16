@@ -1,6 +1,5 @@
 package org.ffpy.easyspider.core.downloader;
 
-import org.ffpy.easyspider.core.Counter;
 import org.ffpy.easyspider.core.entity.Request;
 import org.ffpy.easyspider.core.entity.Response;
 
@@ -35,7 +34,6 @@ public class HttpDownloader implements Downloader {
     private final Proxy proxy;
     /** 代理验证 */
     private final byte[] proxyAuth;
-    private final Counter counter = new Counter();
 
     private HttpDownloader(Executor executor, Proxy proxy, byte[] proxyAuth) {
         this.executor = executor;
@@ -49,15 +47,9 @@ public class HttpDownloader implements Downloader {
             try {
                 downloadAction(request, callback);
             } catch (Exception e) {
-                counter.incrementFailed();
                 e.printStackTrace();
             }
         });
-    }
-
-    @Override
-    public Counter counter() {
-        return counter;
     }
 
     private void downloadAction(Request request, Callback callback) throws Exception {
@@ -88,14 +80,12 @@ public class HttpDownloader implements Downloader {
                 .of(conn.getResponseCode(), conn.getInputStream())
                 .headers(conn.getHeaderFields())
                 .build();
-        // 计数
-        counter.incrementSuccess();
         // 回调
         callback.callback(response);
     }
 
     public static class Builder {
-        private int threads;
+        private int threads = 1;
         private Proxy proxy;
         private byte[] proxyAuth;
 
@@ -132,7 +122,7 @@ public class HttpDownloader implements Downloader {
         }
 
         public HttpDownloader build() {
-            Executor executor = threads < 1 ?
+            Executor executor = threads < 2 ?
                     Executors.newSingleThreadExecutor() :
                     Executors.newFixedThreadPool(threads);
             return new HttpDownloader(executor, proxy, proxyAuth);

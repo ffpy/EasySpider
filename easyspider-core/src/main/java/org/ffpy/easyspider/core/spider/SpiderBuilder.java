@@ -45,15 +45,30 @@ public class SpiderBuilder {
         return this;
     }
 
+    public SpiderBuilder addDownloader(Downloader downloader) {
+        addDownloader(".*", downloader);
+        return this;
+    }
+
     public SpiderBuilder addDownloader(String urlPattern, Downloader downloader) {
         downloaderList.add(new Worker<>(Objects.requireNonNull(urlPattern),
                 Objects.requireNonNull(downloader)));
         return this;
     }
 
+    public SpiderBuilder addProcessor(Processor processor) {
+        addProcessor(".*", processor);
+        return this;
+    }
+
     public SpiderBuilder addProcessor(String urlPattern, Processor processor) {
         processorList.add(new Worker<>(Objects.requireNonNull(urlPattern),
                 Objects.requireNonNull(processor)));
+        return this;
+    }
+
+    public SpiderBuilder addUrlFinder(UrlFinder urlFinder) {
+        addUrlFinder(".*", urlFinder);
         return this;
     }
 

@@ -1,10 +1,7 @@
 package org.ffpy.easyspider.core.mapper;
 
-import org.ffpy.easyspider.core.exception.EasyCrawlerException;
+import org.ffpy.easyspider.core.utils.UrlUtils;
 import org.jsoup.nodes.Element;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 public enum ContentType {
     TEXT((e, url) -> e.text()),
@@ -14,13 +11,7 @@ public enum ContentType {
     HREF((e, url) -> e.attr("href")),
     ABS_HREF((e, url) -> e.absUrl("href")),
     VALUE((e, url) -> e.val()),
-    URL((e, url) -> {
-        try {
-            return URLDecoder.decode(url, "UTF-8");
-        } catch (UnsupportedEncodingException e1) {
-            throw new RuntimeException(e1);
-        }
-    });
+    URL((e, url) -> UrlUtils.decodeUrl(url));
 
     private final Action action;
 

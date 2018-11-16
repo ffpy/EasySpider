@@ -2,8 +2,10 @@ package org.ffpy.easyspider.core.utils;
 
 import org.ffpy.easyspider.core.helper.PatternHelper;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.Map;
 
 public class UrlUtils {
@@ -24,5 +26,13 @@ public class UrlUtils {
             url = url.replace("{" + name + "}", value.toString());
         }
         return url;
+    }
+
+    public static String decodeUrl(String url) {
+        try {
+            return URLDecoder.decode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

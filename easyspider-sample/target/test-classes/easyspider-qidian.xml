@@ -22,7 +22,7 @@
 
     <mapper id="getBookScore" request="bookInfo">
         <property name="value" selector="#j_bookScore" content="text"/>
-        <property name="count" selector="#j_userCount" content="text" pattern="(\d*)"/>
+        <property name="count" selector="#j_userCount" content="text"/>
     </mapper>
 
     <mapper id="getFans" request="bookInfo">

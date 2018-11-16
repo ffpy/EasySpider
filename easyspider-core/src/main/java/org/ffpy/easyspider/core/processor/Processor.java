@@ -1,12 +1,11 @@
 package org.ffpy.easyspider.core.processor;
 
-import org.ffpy.easyspider.core.Countable;
 import org.ffpy.easyspider.core.entity.Page;
 
 /**
  * 页面处理器
  */
-public interface Processor extends Countable {
+public interface Processor {
 
     /**
      * 处理页面
